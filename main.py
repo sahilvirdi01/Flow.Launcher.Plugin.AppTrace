@@ -10,13 +10,6 @@ DEFAULT_ICON = "icons/app.png"
 
 
 def safe_folder_from_app(app):
-    """
-    Returns the best folder path we can use.
-
-    Priority:
-    1. install_folder
-    2. parent folder of exe_path
-    """
     install_folder = app.get("install_folder")
     exe_path = app.get("exe_path")
 
@@ -29,11 +22,40 @@ def safe_folder_from_app(app):
     return None
 
 
-def safe_main_path_from_app(app):
-    exe_path = app.get("exe_path")
-    install_folder = safe_folder_from_app(app)
+def short_version(version):
+    if not version:
+        return None
 
-    return exe_path or install_folder or "Path not found"
+    parts = version.split(".")
+
+    if len(parts) >= 2:
+        return f"v{parts[0]}.{parts[1]}"
+
+    return f"v{version}"
+
+
+def build_app_subtitle(app, install_folder):
+    publisher = app.get("publisher")
+    version = short_version(app.get("version"))
+    source = app.get("source")
+
+    parts = []
+
+    if install_folder:
+        parts.append("Enter: open folder")
+    else:
+        parts.append("Folder path not available")
+
+    if publisher:
+        parts.append(publisher)
+
+    if version:
+        parts.append(version)
+
+    if source:
+        parts.append(source)
+
+    return " • ".join(parts)
 
 
 class AppTrace(FlowLauncher):
@@ -62,38 +84,52 @@ class AppTrace(FlowLauncher):
 
         results = []
 
-        for app in apps[:5]:
+        for app in apps[:8]:
             name = app.get("name") or "Unknown app"
             exe_path = app.get("exe_path")
             install_folder = safe_folder_from_app(app)
-            version = app.get("version")
-            publisher = app.get("publisher")
-            source = app.get("source")
 
-            main_path = safe_main_path_from_app(app)
-
-            details = []
-
-            if version:
-                details.append(f"Version: {version}")
-
-            if publisher:
-                details.append(f"Publisher: {publisher}")
-
-            if source:
-                details.append(f"Source: {source}")
-
-            detail_text = " | ".join(details)
-            subtitle = main_path
-
-            if detail_text:
-                subtitle = f"{main_path} | {detail_text}"
-
-            # Main result: open install folder
             results.append(
                 {
                     "Title": name,
-                    "SubTitle": f"Open install folder | {subtitle}",
+                    "SubTitle": build_app_subtitle(app, install_folder),
+                    "IcoPath": DEFAULT_ICON,
+                    "JsonRPCAction": {
+                        "method": "open_app_folder",
+                        "parameters": [install_folder],
+                    },
+                    "ContextData": [
+                        name,
+                        exe_path,
+                        install_folder,
+                    ],
+                }
+            )
+
+        return results
+
+    def open_app_folder(self, install_folder):
+        if install_folder:
+            open_folder(install_folder)
+
+    def launch_selected_app(self, exe_path):
+        if exe_path:
+            launch_app(exe_path)
+
+    def copy_selected_path(self, path):
+        if path:
+            copy_to_clipboard(path)
+
+    def context_menu(self, data):
+        name, exe_path, install_folder = data
+
+        results = []
+
+        if install_folder:
+            results.append(
+                {
+                    "Title": "Open install folder",
+                    "SubTitle": install_folder,
                     "IcoPath": DEFAULT_ICON,
                     "JsonRPCAction": {
                         "method": "open_app_folder",
@@ -102,65 +138,54 @@ class AppTrace(FlowLauncher):
                 }
             )
 
-            # Visible action: launch app
-            if exe_path:
-                results.append(
-                    {
-                        "Title": f"↳ Launch {name}",
-                        "SubTitle": exe_path,
-                        "IcoPath": DEFAULT_ICON,
-                        "JsonRPCAction": {
-                            "method": "launch_selected_app",
-                            "parameters": [exe_path],
-                        },
-                    }
-                )
+        if exe_path:
+            results.append(
+                {
+                    "Title": f"Launch {name}",
+                    "SubTitle": exe_path,
+                    "IcoPath": DEFAULT_ICON,
+                    "JsonRPCAction": {
+                        "method": "launch_selected_app",
+                        "parameters": [exe_path],
+                    },
+                }
+            )
 
-                results.append(
-                    {
-                        "Title": "↳ Copy executable path",
-                        "SubTitle": exe_path,
-                        "IcoPath": DEFAULT_ICON,
-                        "JsonRPCAction": {
-                            "method": "copy_selected_path",
-                            "parameters": [exe_path],
-                        },
-                    }
-                )
+            results.append(
+                {
+                    "Title": "Copy executable path",
+                    "SubTitle": exe_path,
+                    "IcoPath": DEFAULT_ICON,
+                    "JsonRPCAction": {
+                        "method": "copy_selected_path",
+                        "parameters": [exe_path],
+                    },
+                }
+            )
 
-            # Visible action: copy install folder
-            if install_folder:
-                results.append(
-                    {
-                        "Title": "↳ Copy install folder path",
-                        "SubTitle": install_folder,
-                        "IcoPath": DEFAULT_ICON,
-                        "JsonRPCAction": {
-                            "method": "copy_selected_path",
-                            "parameters": [install_folder],
-                        },
-                    }
-                )
+        if install_folder:
+            results.append(
+                {
+                    "Title": "Copy install folder path",
+                    "SubTitle": install_folder,
+                    "IcoPath": DEFAULT_ICON,
+                    "JsonRPCAction": {
+                        "method": "copy_selected_path",
+                        "parameters": [install_folder],
+                    },
+                }
+            )
+
+        if not results:
+            results.append(
+                {
+                    "Title": "No actions available",
+                    "SubTitle": "This app was found, but no valid path was available",
+                    "IcoPath": DEFAULT_ICON,
+                }
+            )
 
         return results
-
-    def open_app_folder(self, install_folder):
-        if not install_folder:
-            return
-
-        open_folder(install_folder)
-
-    def launch_selected_app(self, exe_path):
-        if not exe_path:
-            return
-
-        launch_app(exe_path)
-
-    def copy_selected_path(self, path):
-        if not path:
-            return
-
-        copy_to_clipboard(path)
 
 
 if __name__ == "__main__":
