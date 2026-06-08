@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-    <img src="/assets/favicon.ico" alt="Repository Banner" width="25%">  
+    <img src="/assets/logo.png" alt="Repository Banner" width="25%">  
   <br>
     AppTrace
 </h1>

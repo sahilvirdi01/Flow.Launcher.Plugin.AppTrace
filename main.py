@@ -6,7 +6,7 @@ from app_finder import find_apps
 from actions import open_folder, launch_app, copy_to_clipboard
 
 
-DEFAULT_ICON = "assets\\favicon.ico"
+DEFAULT_ICON = "assets\\icon.png"
 
 LAUNCHABLE_EXTENSIONS = {".exe", ".lnk", ".bat", ".cmd", ".com"}
 
