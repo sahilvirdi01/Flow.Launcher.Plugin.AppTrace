@@ -9,23 +9,24 @@ def open_folder(folder_path):
 
     path = Path(folder_path)
 
-    if not path.exists():
+    if not path.exists() or not path.is_dir():
         return False
 
     os.startfile(str(path))
     return True
 
 
-def launch_app(exe_path):
-    if not exe_path:
+def launch_app(app_path):
+    if not app_path:
         return False
 
-    path = Path(exe_path)
+    path = Path(app_path)
 
     if not path.exists():
         return False
 
-    subprocess.Popen([str(path)], shell=False)
+    # os.startfile is better for Windows app launching than subprocess.Popen
+    os.startfile(str(path))
     return True
 
 

@@ -6,8 +6,21 @@ from app_finder import find_apps
 from actions import open_folder, launch_app, copy_to_clipboard
 
 
-DEFAULT_ICON = "icons/app.png"
+DEFAULT_ICON = "assets\\favicon.ico"
 
+LAUNCHABLE_EXTENSIONS = {".exe", ".lnk", ".bat", ".cmd", ".com"}
+
+
+def is_launchable_path(path_value):
+    if not path_value:
+        return False
+
+    path = Path(path_value)
+
+    if not path.exists() or not path.is_file():
+        return False
+
+    return path.suffix.lower() in LAUNCHABLE_EXTENSIONS
 
 def safe_folder_from_app(app):
     install_folder = app.get("install_folder")
@@ -45,6 +58,8 @@ def build_app_subtitle(app, install_folder):
         parts.append("Enter: open folder")
     else:
         parts.append("Folder path not available")
+
+    parts.append("Right-click: more actions")
 
     if publisher:
         parts.append(publisher)
@@ -113,7 +128,7 @@ class AppTrace(FlowLauncher):
             open_folder(install_folder)
 
     def launch_selected_app(self, exe_path):
-        if exe_path:
+        if is_launchable_path(exe_path):
             launch_app(exe_path)
 
     def copy_selected_path(self, path):
@@ -138,7 +153,7 @@ class AppTrace(FlowLauncher):
                 }
             )
 
-        if exe_path:
+        if is_launchable_path(exe_path):
             results.append(
                 {
                     "Title": f"Launch {name}",

@@ -4,7 +4,7 @@
     "Name": "AppTrace",
     "Description": "Find where Windows apps are actually installed.",
     "Author": "SahilVirdi",
-    "Version": "0.0.1",
+    "Version": "0.1.0",
     "Language": "python",
     "Website": "https://github.com/sahilvirdi01/AppTrace",
     "IcoPath": "assets/favicon.ico",
