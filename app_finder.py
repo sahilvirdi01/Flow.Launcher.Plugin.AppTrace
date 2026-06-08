@@ -14,23 +14,51 @@ def read_registry_value(key, value_name):
     try:
         value, _ = winreg.QueryValueEx(key, value_name)
         return value
-    except FileNotFoundError:
-        return None
     except OSError:
         return None
 
 
-def find_in_registry(query: str):
-    query = query.lower()
+def clean_icon_path(icon_path):
+    """
+    Registry DisplayIcon can look like:
+    "C:\\Program Files\\App\\app.exe",0
+
+    We remove quotes and the trailing ,0 part.
+    """
+    if not icon_path:
+        return None
+
+    icon_path = icon_path.strip().strip('"')
+
+    if "," in icon_path:
+        icon_path = icon_path.split(",")[0].strip().strip('"')
+
+    return icon_path
+
+
+def is_valid_path(path_value):
+    if not path_value:
+        return False
+
+    try:
+        return Path(path_value).exists()
+    except OSError:
+        return False
+
+
+def find_in_registry(query):
+    query = query.lower().strip()
     results = []
 
-    for root, path in REGISTRY_PATHS:
+    for root, registry_path in REGISTRY_PATHS:
         try:
-            registry_key = winreg.OpenKey(root, path)
+            registry_key = winreg.OpenKey(root, registry_path)
         except OSError:
             continue
 
-        for index in range(winreg.QueryInfoKey(registry_key)[0]):
+        subkey_count = winreg.QueryInfoKey(registry_key)[0]
+
+        for index in range(subkey_count):
             try:
                 subkey_name = winreg.EnumKey(registry_key, index)
                 subkey = winreg.OpenKey(registry_key, subkey_name)
@@ -48,10 +76,17 @@ def find_in_registry(query: str):
                     continue
 
                 exe_path = clean_icon_path(display_icon)
+
+                if exe_path and not is_valid_path(exe_path):
+                    exe_path = None
+
                 install_folder = install_location
 
                 if not install_folder and exe_path:
                     install_folder = str(Path(exe_path).parent)
+
+                if install_folder and not is_valid_path(install_folder):
+                    install_folder = None
 
                 results.append(
                     {
@@ -60,7 +95,7 @@ def find_in_registry(query: str):
                         "install_folder": install_folder,
                         "version": display_version,
                         "publisher": publisher,
-                        "source": "Registry"
+                        "source": "Registry",
                     }
                 )
 
@@ -70,21 +105,13 @@ def find_in_registry(query: str):
     return results
 
 
-def clean_icon_path(icon_path):
-    if not icon_path:
-        return None
+def find_in_path(query):
+    query = query.strip()
 
-    icon_path = icon_path.strip().strip('"')
+    if not query:
+        return []
 
-    if "," in icon_path:
-        possible_path = icon_path.split(",")[0]
-        return possible_path.strip().strip('"')
-
-    return icon_path
-
-
-def find_in_path(app_name: str):
-    exe_path = shutil.which(app_name)
+    exe_path = shutil.which(query)
 
     if not exe_path:
         return []
@@ -98,18 +125,42 @@ def find_in_path(app_name: str):
             "install_folder": str(path.parent),
             "version": None,
             "publisher": None,
-            "source": "PATH"
+            "source": "PATH",
         }
     ]
 
 
-def find_apps(query: str):
-    results = []
+def remove_duplicates(results):
+    seen = set()
+    unique_results = []
 
+    for app in results:
+        key = (
+            app.get("name"),
+            app.get("exe_path"),
+            app.get("install_folder"),
+        )
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+        unique_results.append(app)
+
+    return unique_results
+
+
+def find_apps(query):
+    query = query.strip()
+
+    if not query:
+        return []
+
+    results = []
     results.extend(find_in_registry(query))
     results.extend(find_in_path(query))
 
-    return results
+    return remove_duplicates(results)
 
 
 if __name__ == "__main__":
