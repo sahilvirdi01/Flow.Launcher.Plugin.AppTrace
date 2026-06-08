@@ -2,7 +2,7 @@
     "ID": "074913D9AD5B4C52AF191ECE3B3A8D5A",
     "ActionKeyword": "where",
     "Name": "AppTrace",
-    "Description": "A Flow Launcher plugin that searches installed apps on Windows and shows their real executable path.",
+    "Description": "Find where Windows apps are actually installed.",
     "Author": "SahilVirdi",
     "Version": "0.0.1",
     "Language": "python",
