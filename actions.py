@@ -1,29 +1,44 @@
 from pathlib import Path
 import os
 import subprocess
-import pyperclip
 
 
 def open_folder(folder_path):
     if not folder_path:
-        return
+        return False
 
     path = Path(folder_path)
 
-    if path.exists():
-        os.startfile(str(path))
+    if not path.exists():
+        return False
+
+    os.startfile(str(path))
+    return True
 
 
 def launch_app(exe_path):
     if not exe_path:
-        return
+        return False
 
     path = Path(exe_path)
 
-    if path.exists():
-        subprocess.Popen([str(path)], shell=False)
+    if not path.exists():
+        return False
+
+    subprocess.Popen([str(path)], shell=False)
+    return True
 
 
 def copy_to_clipboard(text):
-    if text:
-        pyperclip.copy(text)
+    if not text:
+        return False
+
+    subprocess.run(
+        "clip",
+        input=text,
+        text=True,
+        shell=True,
+        check=False
+    )
+
+    return True
