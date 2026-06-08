@@ -1,0 +1,12 @@
+{
+    "ID": "074913D9AD5B4C52AF191ECE3B3A8D5A",
+    "ActionKeyword": "where",
+    "Name": "AppTrace",
+    "Description": "A Flow Launcher plugin that searches installed apps on Windows and shows their real executable path.",
+    "Author": "SahilVirdi",
+    "Version": "0.0.1",
+    "Language": "python",
+    "Website": "https://github.com/sahilvirdi01/AppTrace",
+    "IcoPath": "assets/favicon.ico",
+    "ExecuteFileName": "main.py"
+}
