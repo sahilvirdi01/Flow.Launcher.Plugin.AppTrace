@@ -24,8 +24,7 @@ def launch_app(app_path):
 
     if not path.exists():
         return False
-
-    # os.startfile is better for Windows app launching than subprocess.Popen
+    
     os.startfile(str(path))
     return True
 
