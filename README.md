@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-    <img src="/assets/logo.png" alt="Repository Banner" width="25%">  
+    <img src="/assets/logo.png" alt="Repository Banner" width="20%">  
   <br>
     AppTrace
 </h1>
@@ -20,7 +20,6 @@ where flow
 
 AppTrace will show matching apps. Select an app to open its install folder, or use the context menu for extra actions like launching the app or copying paths.
 
----
 
 ## Usage
 
@@ -82,7 +81,6 @@ Copy install folder path
 C:\Program Files\Google\Chrome\Application
 ```
 
----
 
 ## Features
 
