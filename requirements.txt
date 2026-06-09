@@ -1,2 +1,1 @@
 flowlauncher==0.2.0
-pyperclip==1.11.0
