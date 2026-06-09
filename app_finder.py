@@ -19,12 +19,7 @@ def read_registry_value(key, value_name):
 
 
 def clean_icon_path(icon_path):
-    """
-    Registry DisplayIcon can look like:
-    "C:\\Program Files\\App\\app.exe",0
-
-    We remove quotes and the trailing ,0 part.
-    """
+    
     if not icon_path:
         return None
 
